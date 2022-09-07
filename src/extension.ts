@@ -14,6 +14,7 @@ import TelemetryReporter from './telemetryReporter';
 import { exportLogs } from './exportLogs';
 import { ReleaseNotes } from './releaseNotes';
 import { ExperimentalSettings } from './experiments';
+import { instrumentVSCodeTelemetry } from './vscodeTelemetry';
 
 const FIRST_INSTALL_KEY = 'gitpod-desktop.firstInstall';
 
@@ -34,6 +35,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(experiments);
 
 	telemetry = new TelemetryReporter(extensionId, packageJSON.version, packageJSON.segmentKey);
+	instrumentVSCodeTelemetry(telemetry);
 
 	context.subscriptions.push(vscode.commands.registerCommand('gitpod.exportLogs', async () => {
 		try {

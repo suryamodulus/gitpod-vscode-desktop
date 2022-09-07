@@ -112,7 +112,7 @@ export class SettingsSync extends Disposable {
 				const addedSyncProvider = await this.updateSyncContext();
 				if (!addedSyncProvider) {
 					const action = 'Settings Sync: Enable Sign In with Gitpod';
-					const result = await vscode.window.showInformationMessage('Gitpod Settings Sync configuration invalidated, Settings Sync is disabled.', action);
+					const result = await vscode.window.showInformationMessage('Gitpod Settings Sync configuration invalidated, Settings Sync is disabled.', { flow: 'settings_sync', status: 'add_sync_store' }, action);
 					if (result === action) {
 						vscode.commands.executeCommand('gitpod.syncProvider.add');
 					}
@@ -148,6 +148,8 @@ export class SettingsSync extends Disposable {
 	 * @param enabled - indicates whether to add or remove the configuration
 	 */
 	private async enableSettingsSync(enabled: boolean): Promise<void> {
+		const flowOptions: vscode.FlowTelemetryOptions = { flow: 'settings_sync', enabled: String(enabled) };
+		this.telemetry.sendFlowStatus({ ...flowOptions, status: 'updating' })
 		try {
 			let newSyncProviderConfig: ConfigurationSyncStore | undefined;
 			let newIgnoredSettingsConfig: string[] | undefined;
@@ -175,12 +177,10 @@ export class SettingsSync extends Disposable {
 			await config.update('settingsSync.ignoredSettings', newIgnoredSettingsConfig, vscode.ConfigurationTarget.Global);
 			await config.update('configurationSync.store', newSyncProviderConfig, vscode.ConfigurationTarget.Global);
 
-			this.telemetry.sendTelemetryEvent('gitpod_desktop_settings_sync', { enabled: String(enabled) });
-
-			vscode.window.showInformationMessage('Quit VS Code for the new Settings Sync configuration to take effect.', { modal: true });
+			vscode.window.showInformationMessage('Quit VS Code for the new Settings Sync configuration to take effect.', { ...flowOptions, modal: true, status: 'updated' });
 		} catch (e) {
 			const outputMessage = `Error setting up Settings Sync with Gitpod: ${e}`;
-			vscode.window.showErrorMessage(outputMessage);
+			vscode.window.showErrorMessage(outputMessage, { ...flowOptions, status: 'failed' });
 			this.logger.error(outputMessage);
 		}
 	}

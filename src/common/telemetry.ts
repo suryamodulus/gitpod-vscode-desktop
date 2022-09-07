@@ -373,6 +373,10 @@ export class BaseTelemetryReporter extends Disposable {
 		}
 	}
 
+	sendFlowStatus(flowStatus: vscode.FlowStatusTelemetryOptions): void {
+		this.sendRawTelemetryEvent('vscode_desktop_' + flowStatus.flow, flowStatus);
+	}
+
 	/**
 	 * Given an event name, some properties, and measurements sends a raw (unsanitized) telemetry event
 	 * @param eventName The name of the event
